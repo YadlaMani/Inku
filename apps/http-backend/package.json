@@ -3,14 +3,20 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently --kill-others \"tsc --watch\" \"nodemon dist/index.js\"",
+    "build": "tsc -b",
+    "start": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "typescript": "^5.8.2",
-    "@repo/typescript-config": "*"
+    "@repo/typescript-config": "*",
+    "@types/express": "^5.0.0",
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9",
+    "typescript": "^5.8.2"
   }
 }
