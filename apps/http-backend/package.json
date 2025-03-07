@@ -1,25 +1,27 @@
 {
   "name": "http-backend",
-  "version": "1.0.0",
-  "main": "index.js",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently --kill-others \"tsc --watch\" \"nodemon dist/index.js\"",
-    "build": "tsc -b",
-    "start": "node ./dist/index.js"
+    "dev": "bun run --watch index.ts",
+    "build": "bun run tsc -b",
+    "start": "bun run ./dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
+  "devDependencies": {
     "@repo/typescript-config": "*",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
     "bcrypt": "^5.1.1",
     "express": "^4.21.2",
-    "nodemon": "^3.1.9",
     "typescript": "^5.8.2",
     "zod": "^3.24.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "jsonwebtoken": "^9.0.2"
   }
 }
