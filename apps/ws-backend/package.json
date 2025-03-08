@@ -1,22 +1,23 @@
 {
   "name": "ws-backend",
-  "version": "1.0.0",
-  "main": "index.js",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently --kill-others \"tsc --watch\" \"nodemon dist/index.js\"",
-    "build": "tsc -b",
-    "start": "node ./dist/index.js"
+    "dev": "bun run --watch index.ts",
+    "build": "bun run tsc -b",
+    "start": "bun run ./dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@repo/typescript-config": "*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
   "dependencies": {
-    "@repo/typescript-config": "*",
-    "@types/ws": "^8.18.0",
-    "nodemon": "^3.1.9",
-    "typescript": "^5.8.2",
+    "@types/express": "^5.0.0",
+    "express": "^4.21.2",
     "ws": "^8.18.1"
   }
 }

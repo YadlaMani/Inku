@@ -8,14 +8,14 @@ export function authMiddleware(
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
     res.status(401).json({
-      message: "Unauthorized",
+      message: "No token header provided",
     });
     return;
   }
   const decode = jwt.verify(token, process.env.JWT_SECRET_KEY!);
   if (!decode) {
     res.status(401).json({
-      message: "Unauthorized",
+      message: "Invalid token",
     });
     return;
   }
