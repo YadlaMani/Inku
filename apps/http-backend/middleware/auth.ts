@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
 export function authMiddleware(
   req: Request,
@@ -15,7 +15,7 @@ export function authMiddleware(
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET_KEY!
-    ) as JwtPayload & { userId?: number };
+    ) as JwtPayload & { userId?: String };
 
     if (!decoded?.userId) {
       res.status(401).json({ message: "Invalid token" });

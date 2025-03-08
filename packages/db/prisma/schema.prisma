@@ -13,8 +13,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 model User{
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   email String @unique
   username String @unique
-  password String
+  password String 
+  photo String @default("https://static.vecteezy.com/system/resources/previews/022/518/787/original/cute-kawaii-baby-panda-sitting-cartoon-character-icon-illustration-children-illustration-animal-nature-concept-flat-cartoon-style-vector.jpg")
+  createdAt DateTime @default(now())
+
+  rooms Room[]
+  chats Chat[]
+}
+model Room{
+  id Int @id @default(autoincrement())
+  slug String @unique
+  createdAt DateTime @default(now())
+  adminId String
+  admin User @relation(fields:[adminId],references:[id])
+  chats Chat[]
+}
+model Chat{
+  id Int @id @default(autoincrement())
+  message String
+  userId String
+  roomId Int
+  room Room @relation(fields:[roomId],references:[id])
+  user User @relation(fields:[userId],references:[id])
+
 }
