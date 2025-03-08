@@ -4,9 +4,9 @@ import "dotenv/config";
 import cors from "cors";
 //internal imports
 
-import userRouter from "./routes/userRoutes";
-import roomRouter from "./routes/roomRoutes";
-import { authMiddleware } from "./middleware/auth";
+import userRouter from "./routes/userRoutes.js";
+import roomRouter from "./routes/roomRoutes.js";
+import { authMiddleware } from "./middleware/auth.js";
 
 //app setup
 const app = express();

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { userSchema } from "../utils/userSchema";
-import { prismaClient } from "../../../packages/db";
+import { userSchema, loginSchema } from "@repo/common/utils";
+import { prismaClient } from "@repo/db/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -42,7 +42,7 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 export const loginUser = async (req: Request, res: Response) => {
   try {
-    const { username, password } = req.body;
+    const { username, password } = loginSchema.parse(req.body);
     const user = await prismaClient.user.findUnique({
       where: {
         username: username,

@@ -1,10 +1,10 @@
 {
-  "name": "@repo/db",
+  "name": "@repo/common",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "exports": {
-    "./client": "./index.ts"
+    "./utils": "./index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -13,10 +13,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/client": "^6.4.1",
-    "prisma": "^6.4.1"
-  },
-  "publishConfig": {
-    "access": "public"
+    "zod": "^3.24.2"
   }
 }
