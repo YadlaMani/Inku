@@ -30,7 +30,7 @@ export const getRoomChats = async (req: Request, res: Response) => {
   try {
     const { roomId } = req.params;
     if (!req.userId) {
-      res.status(401).json({ message: "Unauthorized" });
+      res.json({ message: "Unauthorized", success: false });
       return;
     }
     const chats = await prismaClient.chat.findMany({
@@ -38,18 +38,20 @@ export const getRoomChats = async (req: Request, res: Response) => {
         roomId,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
       take: 50,
     });
-    res.status(200).json({
+    res.json({
       message: "Chats fetched successfully",
       data: chats,
+      success: true,
     });
   } catch (err) {
-    res.status(400).json({
+    res.json({
       message: "Something went wrong",
       error: err,
+      success: false,
     });
   }
 };

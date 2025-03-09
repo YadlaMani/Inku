@@ -36,13 +36,13 @@ wss.on("connection", async (ws, req) => {
       } else if (parsedData.type === "leave_room") {
         user.rooms = user.rooms.filter((room) => room !== parsedData.roomId);
         console.log(`User ${user.userId} left room ${parsedData.roomId}`);
-      } else if (parsedData.type === "message") {
+      } else if (parsedData.type === "chat") {
         const { roomId, message } = parsedData;
         const chat = await prismaClient.chat.create({
           data: {
             message: message,
             roomId: roomId,
-            userId: user.userId,
+            userId: user.userId as string,
           },
         });
 
@@ -51,7 +51,12 @@ wss.on("connection", async (ws, req) => {
           .forEach((u) => {
             if (u.ws.readyState === ws.OPEN) {
               u.ws.send(
-                JSON.stringify({ sender: user.userId, roomId, message })
+                JSON.stringify({
+                  sender: user.userId,
+                  roomId,
+                  message,
+                  type: "message",
+                })
               );
             }
           });

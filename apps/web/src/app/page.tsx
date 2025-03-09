@@ -4,9 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 export default function Home() {
   const [roomName, setRoomName] = useState("");
+  const router = useRouter();
   async function joinRoom() {
     if (roomName === "") {
       toast.error("Room name is required");
@@ -27,6 +29,8 @@ export default function Home() {
       );
       if (response.data.success) {
         toast.success("Room joined successfully");
+
+        router.push(`/room/${response.data.data}`);
       } else {
         toast.error(response.data.message);
       }
