@@ -1,55 +1,71 @@
 import { WebSocketServer } from "ws";
 import { checkUser } from "./utils/verify";
-import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { User } from "./types";
+import { prismaClient } from "@repo/db/client";
 const users: User[] = [];
 const wss = new WebSocketServer({
-  port: (process.env.PORT! as unknown as number) || 5050,
+  port: Number(process.env.PORT) || 5050,
 });
-wss.on("connection", (ws, req) => {
+
+wss.on("connection", async (ws, req) => {
   try {
     const url = req.url || "";
     const res = checkUser(url);
-    if (!res.success) {
-      ws.send(JSON.stringify({ message: res.message }));
+
+    if (!res.success || !res.userId) {
+      ws.send(
+        JSON.stringify({ message: res.message || "Invalid or expired token" })
+      );
       ws.close();
       return;
     }
-    if (!res.userId) {
-      ws.send(JSON.stringify({ message: "Invalid or expired token" }));
-      ws.close();
-      return;
-    }
+
     ws.send(
       JSON.stringify({ message: `User connected with id: ${res.userId}` })
     );
 
-    users.push({ ws, userId: res.userId, rooms: [] });
+    const user: User = { ws, userId: res.userId, rooms: [] };
+    users.push(user);
 
-    ws.on("message", (data) => {
-      const parsedData = JSON.parse(data as unknown as string);
+    ws.on("message", async (data) => {
+      const parsedData = JSON.parse(data.toString());
+
       if (parsedData.type === "join_room") {
-        const user = users.find((user) => user.userId === res.userId);
-        user?.rooms.push(parsedData.roomId);
-        console.log(`User ${res.userId} joined room ${parsedData.roomId}`);
+        user.rooms.push(parsedData.roomId);
+        console.log(`User ${user.userId} joined room ${parsedData.roomId}`);
       } else if (parsedData.type === "leave_room") {
-        const user = users.find((user) => user.userId === res.userId);
-        if (user) {
-          user.rooms = user.rooms.filter((room) => room !== parsedData.roomId);
-        }
-        console.log(`User ${res.userId} left room ${parsedData.roomId}`);
+        user.rooms = user.rooms.filter((room) => room !== parsedData.roomId);
+        console.log(`User ${user.userId} left room ${parsedData.roomId}`);
       } else if (parsedData.type === "message") {
-        const room = parsedData.roomId;
-        const message = parsedData.message;
-        const sender = res.userId;
-        const user = users.find((user) => user.rooms.includes(room));
+        const { roomId, message } = parsedData;
+        const chat = await prismaClient.chat.create({
+          data: {
+            message: message,
+            roomId: roomId,
+            userId: user.userId,
+          },
+        });
+
+        users
+          .filter((u) => u.rooms.includes(roomId))
+          .forEach((u) => {
+            if (u.ws.readyState === ws.OPEN) {
+              u.ws.send(
+                JSON.stringify({ sender: user.userId, roomId, message })
+              );
+            }
+          });
       }
     });
-    ws.on("error", (err) => {
-      console.log(`Error: ${err}`);
-    });
+
     ws.on("close", () => {
-      console.log(`User disconnected with id: ${res.userId}`);
+      console.log(`User disconnected with id: ${user.userId}`);
+      const index = users.findIndex((u) => u.userId === user.userId);
+      if (index !== -1) users.splice(index, 1);
+    });
+
+    ws.on("error", (err) => {
+      console.error(`Error: ${err}`);
     });
   } catch (err) {
     ws.send(JSON.stringify({ message: "Invalid or expired token" }));
