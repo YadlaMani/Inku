@@ -53,3 +53,31 @@ export const getRoomChats = async (req: Request, res: Response) => {
     });
   }
 };
+export const getRoomId = async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.body;
+    const room = await prismaClient.room.findUnique({
+      where: {
+        slug,
+      },
+    });
+    if (!room) {
+      res.json({
+        message: "Room not found",
+        success: false,
+      });
+      return;
+    }
+    res.json({
+      message: "Room id fetched successfully",
+      data: room.id,
+      success: true,
+    });
+  } catch (err) {
+    res.json({
+      message: "Something went wrong",
+      error: err,
+      success: false,
+    });
+  }
+};

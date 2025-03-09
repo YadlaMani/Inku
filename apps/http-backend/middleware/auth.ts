@@ -8,7 +8,7 @@ export function authMiddleware(
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
-      res.status(401).json({ message: "No token provided" });
+      res.json({ message: "No token provided", success: false });
       return;
     }
 
@@ -18,16 +18,17 @@ export function authMiddleware(
     ) as JwtPayload & { userId?: String };
 
     if (!decoded?.userId) {
-      res.status(401).json({ message: "Invalid token" });
+      res.json({ message: "Invalid token", success: false });
       return;
     }
 
     req.userId = decoded.userId.toString();
     next();
   } catch (error) {
-    res.status(401).json({
+    res.json({
       message: "Invalid or expired token",
       error: (error as Error).message,
+      success: false,
     });
   }
 }
