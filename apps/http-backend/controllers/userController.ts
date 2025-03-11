@@ -15,6 +15,7 @@ export const registerUser = async (req: Request, res: Response) => {
     if (user) {
       res.status(400).json({
         message: "username already exists",
+        success: false,
       });
       return;
     }
@@ -32,11 +33,13 @@ export const registerUser = async (req: Request, res: Response) => {
       message: "user created successfully",
       data: newUser,
       token,
+      success: true,
     });
   } catch (err) {
     res.status(400).json({
-      message: "Somethign went wrong",
+      message: "Something went wrong",
       error: err,
+      success: false,
     });
   }
 };
@@ -49,27 +52,31 @@ export const loginUser = async (req: Request, res: Response) => {
       },
     });
     if (!user) {
-      res.status(400).json({
+      res.json({
         message: "Invalid username or password",
+        success: false,
       });
       return;
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      res.status(400).json({
+      res.json({
         message: "Invalid username or password",
+        success: false,
       });
       return;
     }
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET_KEY!);
-    res.status(200).json({
+    res.json({
       message: "Login successful",
       token,
+      success: true,
     });
   } catch (err) {
-    res.status(400).json({
+    res.json({
       message: "Something went wrong",
       error: err,
+      success: false,
     });
   }
 };

@@ -7,7 +7,7 @@ const page = async ({
     roomId: string;
   };
 }) => {
-  const roomId = (await params).roomId;
+  const roomId = params.roomId;
   return (
     <div>
       <h1>{roomId}</h1>
