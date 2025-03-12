@@ -4,7 +4,6 @@ import rough from "roughjs";
 import { Button } from "@/components/ui/button";
 import { RoughCanvas } from "roughjs/bin/canvas";
 import { toast } from "sonner";
-import { useParams } from "next/navigation";
 
 type Shape =
   | { type: "rect"; x: number; y: number; width: number; height: number }
@@ -12,14 +11,12 @@ type Shape =
 
 type currShape = "rect" | "circle";
 
-const CanvasRoom = () => {
+const CanvasRoom = ({ roomId }: { roomId: string }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rc, setRc] = useState<RoughCanvas | null>(null);
   const [shapeType, setShapeType] = useState<currShape>("rect");
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const roomId = useParams().canvasId;
-
   const [startCoords, setStartCoords] = useState<{
     x: number;
     y: number;
@@ -47,11 +44,7 @@ const CanvasRoom = () => {
     return () => window.removeEventListener("resize", resizeCanvas);
   }, [shapes, previewShape]);
   useEffect(() => {
-    if (!roomId) {
-      console.log("No roomId found, not connecting WebSocket");
-
-      return;
-    }
+    if (!roomId) return;
 
     console.log("Connecting to WebSocket for Canvas");
 
@@ -64,9 +57,18 @@ const CanvasRoom = () => {
       console.log("WebSocket Connected for Canvas");
       socket.send(JSON.stringify({ type: "join_room", roomId }));
     };
+
     socket.onmessage = (event) => {
-      const data = JSON.stringify(event.data);
-      console.log(data);
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === "new_shape") {
+          setShapes((prevShapes) => [...prevShapes, message.shape]);
+        } else if (message.type === "all_shapes") {
+          setShapes(message.shapes);
+        }
+      } catch (err) {
+        console.error("Error parsing socket message:", err);
+      }
     };
 
     socket.onerror = (err) => {
@@ -114,8 +116,7 @@ const CanvasRoom = () => {
   const handleMouseUp = () => {
     if (!isDrawing || !previewShape) return;
     setIsDrawing(false);
-    if (socketRef.current) {
-      console.log("Sending shape to socket");
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
           type: "add_shape",
@@ -170,8 +171,6 @@ const CanvasRoom = () => {
         >
           Switch Shapes
         </Button>
-
-        <h1 className="text-white">Room Id :{roomId}</h1>
       </div>
     </div>
   );
