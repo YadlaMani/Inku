@@ -1,10 +1,27 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { RoughCanvas } from "roughjs/bin/canvas";
 import rough from "roughjs";
-const page = () => {
+import { Button } from "@/components/ui/button";
+import { RoughCanvas } from "roughjs/bin/canvas";
+
+type Shape =
+  | { type: "rect"; x: number; y: number; width: number; height: number }
+  | { type: "circle"; centerX: number; centerY: number; radius: number };
+
+type currShape = "rect" | "circle";
+
+const Page = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rc, setRc] = useState<RoughCanvas | null>(null);
+  const [shapeType, setShapeType] = useState<currShape>("rect");
+  const [shapes, setShapes] = useState<Shape[]>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [startCoords, setStartCoords] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [previewShape, setPreviewShape] = useState<Shape | null>(null);
+
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -12,55 +29,94 @@ const page = () => {
     if (!context) return;
     const roughCanvas = rough.canvas(canvas);
     setRc(roughCanvas);
+
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      redrawCanvas(roughCanvas, shapes, previewShape);
     };
+
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
-  useEffect(() => {
-    if (!canvasRef.current || !rc) return;
+  }, [shapes, previewShape]); // Ensure canvas resizes properly
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    setStartCoords({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startCoords || !rc) return;
+
+    const width = event.clientX - startCoords.x;
+    const height = event.clientY - startCoords.y;
+    const newShape: Shape =
+      shapeType === "rect"
+        ? { type: "rect", x: startCoords.x, y: startCoords.y, width, height }
+        : {
+            type: "circle",
+            centerX: startCoords.x,
+            centerY: startCoords.y,
+            radius: Math.abs(width),
+          };
+
+    setPreviewShape(newShape);
+    redrawCanvas(rc, shapes, newShape);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDrawing || !previewShape) return;
+    setIsDrawing(false);
+    setShapes((prevShapes) => [...prevShapes, previewShape]);
+    setPreviewShape(null);
+  };
+
+  const redrawCanvas = (
+    rc: RoughCanvas,
+    shapes: Shape[],
+    preview?: Shape | null
+  ) => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const context = canvas.getContext("2d");
     if (!context) return;
-    let isDrawing = false;
-    let startX = 0,
-      startY = 0;
-    canvas.addEventListener("mousedown", (event) => {
-      isDrawing = true;
-      startX = event.clientX;
-      startY = event.clientY;
-    });
-    canvas.addEventListener("mouseup", (event) => {
-      isDrawing = false;
-    });
-    canvas.addEventListener("mousemove", (event) => {
-      if (!isDrawing) return;
-      context.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-      rc.rectangle(
-        startX,
-        startY,
-        event.clientX - startX,
-        event.clientY - startY,
-        {
-          stroke: "white",
-        }
-      );
-    });
-  });
+    shapes.forEach((shape) => drawShape(rc, shape));
+
+    if (preview) {
+      drawShape(rc, preview, true);
+    }
+  };
+
+  const drawShape = (rc: RoughCanvas, shape: Shape, isPreview = false) => {
+    const options = { stroke: isPreview ? "gray" : "white" };
+    if (shape.type === "rect") {
+      rc.rectangle(shape.x, shape.y, shape.width, shape.height, options);
+    } else if (shape.type === "circle") {
+      rc.circle(shape.centerX, shape.centerY, shape.radius * 2, options);
+    }
+  };
 
   return (
-    <div className="h-full w-full ">
+    <div className="h-full w-full relative">
       <canvas
         ref={canvasRef}
         className="absolute top-0 left-0 bg-black"
-      ></canvas>
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      />
+      <div className="absolute top-4 left-4 z-10">
+        <Button
+          onClick={() => setShapeType(shapeType === "rect" ? "circle" : "rect")}
+        >
+          Switch Shapes
+        </Button>
+      </div>
     </div>
   );
 };
 
-export default page;
+export default Page;
