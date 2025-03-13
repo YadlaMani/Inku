@@ -29,6 +29,41 @@ const CanvasRoom = () => {
   const [previewShape, setPreviewShape] = useState<Shape | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
+  async function fetchInitialShapes() {
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_HTTP_URL}/api/v1/room/shapes/${roomId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TEST_USER_TOKEN}`,
+        },
+      }
+    );
+    const fetchedShapes = res.data.shapes.map((shape: any) => {
+      if (shape.type === "rect") {
+        return {
+          type: "rect",
+          x: shape.data.x,
+          y: shape.data.y,
+          width: shape.data.width,
+          height: shape.data.height,
+        };
+      } else if (shape.type === "circle") {
+        return {
+          type: "circle",
+          centerX: shape.data.centerX,
+          centerY: shape.data.centerY,
+          radius: shape.data.radius,
+        };
+      }
+    });
+    console.log("Processed shapes:", fetchedShapes);
+    setShapes(fetchedShapes);
+    shapesRef.current = fetchedShapes;
+  }
+  useEffect(() => {
+    fetchInitialShapes();
+    if (rc) redrawCanvas(rc, shapes);
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -69,29 +104,34 @@ const CanvasRoom = () => {
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Received shape data:", data);
-
       if (data.data) {
         const shape = data.data;
+        let newShape: Shape;
+
         if (shape.type === "rect") {
-          const rectShape: Shape = {
+          newShape = {
             type: "rect",
             x: shape.x,
             y: shape.y,
             width: shape.width,
             height: shape.height,
           };
-          shapesRef.current = [...shapesRef.current, rectShape];
-          if (rc) redrawCanvas(rc, shapesRef.current);
         } else {
-          const circleShape: Shape = {
+          newShape = {
             type: "circle",
             centerX: shape.centerX,
             centerY: shape.centerY,
             radius: shape.radius,
           };
-          shapesRef.current = [...shapesRef.current, circleShape];
-          if (rc) redrawCanvas(rc, shapesRef.current);
         }
+
+        setShapes((prevShapes) => {
+          const updatedShapes = [...prevShapes, newShape];
+          shapesRef.current = updatedShapes;
+          return updatedShapes;
+        });
+        console.log("Shapes after adding:", shapesRef.current);
+        if (rc) redrawCanvas(rc, [...shapesRef.current]);
       }
     };
 
@@ -142,7 +182,7 @@ const CanvasRoom = () => {
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !previewShape) return;
     setIsDrawing(false);
-    // const res = await axios.post();
+
     if (socketRef.current) {
       console.log("Sending shape to socket");
       socketRef.current.send(
