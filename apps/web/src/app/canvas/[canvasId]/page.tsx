@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RoughCanvas } from "roughjs/bin/canvas";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import axios from "axios";
 
 type Shape =
   | { type: "rect"; x: number; y: number; width: number; height: number }
@@ -19,6 +20,7 @@ const CanvasRoom = () => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const roomId = useParams().canvasId;
+  const shapesRef = useRef(shapes);
 
   const [startCoords, setStartCoords] = useState<{
     x: number;
@@ -65,8 +67,32 @@ const CanvasRoom = () => {
       socket.send(JSON.stringify({ type: "join_room", roomId }));
     };
     socket.onmessage = (event) => {
-      const data = JSON.stringify(event.data);
-      console.log(data);
+      const data = JSON.parse(event.data);
+      console.log("Received shape data:", data);
+
+      if (data.data) {
+        const shape = data.data;
+        if (shape.type === "rect") {
+          const rectShape: Shape = {
+            type: "rect",
+            x: shape.x,
+            y: shape.y,
+            width: shape.width,
+            height: shape.height,
+          };
+          shapesRef.current = [...shapesRef.current, rectShape];
+          if (rc) redrawCanvas(rc, shapesRef.current);
+        } else {
+          const circleShape: Shape = {
+            type: "circle",
+            centerX: shape.centerX,
+            centerY: shape.centerY,
+            radius: shape.radius,
+          };
+          shapesRef.current = [...shapesRef.current, circleShape];
+          if (rc) redrawCanvas(rc, shapesRef.current);
+        }
+      }
     };
 
     socket.onerror = (err) => {
@@ -91,7 +117,9 @@ const CanvasRoom = () => {
     setIsDrawing(true);
     setStartCoords({ x: event.clientX, y: event.clientY });
   };
-
+  useEffect(() => {
+    shapesRef.current = shapes;
+  }, [shapes]);
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !startCoords || !rc) return;
 
@@ -111,9 +139,10 @@ const CanvasRoom = () => {
     redrawCanvas(rc, shapes, newShape);
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !previewShape) return;
     setIsDrawing(false);
+    // const res = await axios.post();
     if (socketRef.current) {
       console.log("Sending shape to socket");
       socketRef.current.send(

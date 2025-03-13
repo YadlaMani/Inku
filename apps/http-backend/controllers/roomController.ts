@@ -107,3 +107,31 @@ export const getRooms = async (req: Request, res: Response) => {
     });
   }
 };
+export const getRoomShapes = async (req: Request, res: Response) => {
+  try {
+    if (!req.userId) {
+      res.json({ message: "Unauthorized", success: false });
+      return;
+    }
+    const { roomId } = req.params;
+    const shapes = await prismaClient.shape.findMany({
+      where: {
+        roomId,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      take: 25,
+    });
+    res.json({
+      message: "Shapes fetched successfully",
+      shapes,
+    });
+  } catch (err) {
+    res.json({
+      message: "Something went wrong",
+      error: err,
+      success: false,
+    });
+  }
+};

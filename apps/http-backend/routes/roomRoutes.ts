@@ -4,6 +4,7 @@ import {
   getRoomChats,
   getRoomId,
   getRooms,
+  getRoomShapes,
 } from "../controllers/roomController";
 
 const router = express.Router();
@@ -12,3 +13,4 @@ router.post("/create", createRoom);
 router.get("/chats/:roomId", getRoomChats);
 router.post("/roomId", getRoomId);
 router.get("/", getRooms);
+router.get("/shapes/:roomId", getRoomShapes);

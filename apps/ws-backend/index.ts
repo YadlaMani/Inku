@@ -63,19 +63,20 @@ wss.on("connection", async (ws, req) => {
           });
       } else if (parsedData.type === "add_shape") {
         const { roomId, previewShape } = parsedData;
+        const shape = await prismaClient.shape.create({
+          data: {
+            type: previewShape.type,
+            data: previewShape,
+            roomId: roomId,
+            userId: user.userId as string,
+          },
+        });
 
-        ws.send(JSON.stringify({ message: "Shape received" }));
         users
           .filter((u) => u.rooms.includes(roomId))
           .forEach((u) => {
             if (u.ws.readyState === ws.OPEN) {
-              u.ws.send(
-                JSON.stringify({
-                  type: "add_shape",
-                  roomId,
-                  previewShape,
-                })
-              );
+              u.ws.send(JSON.stringify(shape));
             }
           });
       }
