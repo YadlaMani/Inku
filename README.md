@@ -1,1 +1,1 @@
-## Almost done with mvp of the app but have lot of small fix and features to build
+## Started today maybe will be done in 3 days lets see
