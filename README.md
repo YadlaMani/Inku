@@ -1,1 +1,1 @@
-## Almost done with mvp of the app but have lot of minutes fix and features to build
+## Almost done with mvp of the app but have lot of small fix and features to build
