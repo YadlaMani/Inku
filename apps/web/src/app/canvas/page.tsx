@@ -12,7 +12,7 @@ interface Room {
   createdAt: string;
 }
 
-const Page = () => {
+const CanvasRoom = () => {
   const searchParams = useSearchParams();
   const slug = searchParams.get("slug");
   const [room, setRoom] = useState<Room | null>(null);
@@ -67,4 +67,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default CanvasRoom;
