@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userSchema } from "@repo/common/utils";
-import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
 import {
   Card,
   CardContent,
@@ -29,6 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,8 +55,9 @@ export default function LoginPage() {
         data
       );
       const res = response.data;
+      console.log(res);
       if (res.success) {
-        toast.message(res.message);
+        toast.success(res.message);
         localStorage.setItem("token", res.token);
         router.push("/");
       } else {
@@ -66,17 +66,18 @@ export default function LoginPage() {
       }
     } catch (error) {
       toast.error("Invalid username or password");
+      setError("Invalid username or password");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center  bg-white dark:bg-black">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Sign in to your account
+            Sign up to your account
           </CardTitle>
           <CardDescription className="text-center">
             Enter your username and password to sign in
@@ -100,6 +101,23 @@ export default function LoginPage() {
               />
               <FormField
                 control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="xyz@gmail.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -115,19 +133,7 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="xyz@gmail.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               {error && <p className="text-sm text-red-500">{error}</p>}
               <div className="flex items-center justify-between">
                 <Link
@@ -140,8 +146,8 @@ export default function LoginPage() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing
+                    in...
                   </>
                 ) : (
                   "Sign in"
@@ -152,9 +158,9 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col">
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link href="/register" className="text-primary hover:underline">
-              Sign up
+            Already have an account?
+            <Link href="/login" className="text-primary hover:underline">
+              Login
             </Link>
           </p>
         </CardFooter>
