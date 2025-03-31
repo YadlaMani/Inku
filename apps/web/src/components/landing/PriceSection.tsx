@@ -9,10 +9,10 @@ const PriceSection = () => {
       <div className="max-w-5xl mx-auto">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold mb-3">
-            Simple, transparent pricing
+            {`Simple, transparent pricing`}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that's right for you or your team
+            Choose the plan thats right for you or your team
           </p>
         </div>
 
