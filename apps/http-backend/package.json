@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "bun run --watch index.ts",
     "build": "bun run tsc -b",
-    "start": "bun run ./dist/index.js"
+    "start": "bun run ./dist/index.js",
+    "vercel-build": "bun run build"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
