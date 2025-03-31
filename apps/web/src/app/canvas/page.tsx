@@ -13,11 +13,20 @@ interface Room {
 }
 
 const CanvasRoom = () => {
-  const searchParams = useSearchParams();
-  const slug = searchParams.get("slug");
   const [room, setRoom] = useState<Room | null>(null);
+  const [slug, setSlug] = useState<string | null>(null);
 
-  async function fetchRoomDetails() {
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const slugParam = searchParams.get("slug");
+    setSlug(slugParam);
+
+    if (slugParam) {
+      fetchRoomDetails(slugParam);
+    }
+  }, []);
+
+  async function fetchRoomDetails(slug: string) {
     try {
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -39,9 +48,6 @@ const CanvasRoom = () => {
       toast.error("Error fetching room details");
     }
   }
-  useEffect(() => {
-    fetchRoomDetails();
-  }, []);
 
   return (
     <div>
@@ -59,7 +65,7 @@ const CanvasRoom = () => {
         <div>
           <h1>Room not found</h1>
           <Button>
-            <Link href="/dashboard">Create ur own</Link>
+            <Link href="/dashboard">Create your own</Link>
           </Button>
         </div>
       )}
