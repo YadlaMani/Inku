@@ -17,15 +17,20 @@ type currShape = "rect" | "circle" | "line";
 
 const CanvasRoom = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const staticCanvasRef = useRef<HTMLCanvasElement>(null);
   const rcRef = useRef<RoughCanvas | null>(null);
+  const staticRcRef = useRef<RoughCanvas | null>(null);
   const [shapeType, setShapeType] = useState<currShape>("rect");
-  const [shapes, setShapes] = useState<Shape[]>([]);
+
   const shapesRef = useRef<Shape[]>([]);
+
+  const [, setShapesCount] = useState(0);
   const isDrawingRef = useRef(false);
   const startCoordsRef = useRef<{ x: number; y: number } | null>(null);
   const previewShapeRef = useRef<Shape | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const roomId = useParams().canvasId;
+  const animationFrameIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchInitialShapes = async () => {
@@ -69,9 +74,9 @@ const CanvasRoom = () => {
           })
           .filter(Boolean);
 
-        setShapes(fetchedShapes);
         shapesRef.current = fetchedShapes;
-        redrawCanvas();
+        setShapesCount(fetchedShapes.length);
+        redrawStaticCanvas();
       } catch (error) {
         console.error("Failed to fetch shapes:", error);
         toast.error("Failed to load canvas data");
@@ -82,19 +87,25 @@ const CanvasRoom = () => {
   }, [roomId]);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !staticCanvasRef.current) return;
 
     const canvas = canvasRef.current;
+    const staticCanvas = staticCanvasRef.current;
     const context = canvas.getContext("2d");
-    if (!context) return;
+    const staticContext = staticCanvas.getContext("2d");
+    if (!context || !staticContext) return;
 
     const roughCanvas = rough.canvas(canvas);
+    const staticRoughCanvas = rough.canvas(staticCanvas);
     rcRef.current = roughCanvas;
+    staticRcRef.current = staticRoughCanvas;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      redrawCanvas();
+      staticCanvas.width = window.innerWidth;
+      staticCanvas.height = window.innerHeight;
+      redrawStaticCanvas();
     };
 
     resizeCanvas();
@@ -151,8 +162,9 @@ const CanvasRoom = () => {
           }
 
           shapesRef.current = [...shapesRef.current, newShape];
-          setShapes([...shapesRef.current]);
-          redrawCanvas();
+          setShapesCount((prev) => prev + 1);
+
+          drawShapeOnStatic(newShape);
         }
       };
 
@@ -175,33 +187,19 @@ const CanvasRoom = () => {
         socketRef.current.close();
       }
       socketRef.current = null;
+
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
     };
   }, [roomId]);
 
-  useEffect(() => {
-    shapesRef.current = shapes;
-  }, [shapes]);
+  const drawShapeOnStatic = useCallback((shape: Shape) => {
+    const rc = staticRcRef.current;
+    if (!rc) return;
 
-  const redrawCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    const rc = rcRef.current;
-    if (!canvas || !rc) return;
-
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    shapesRef.current.forEach((shape) => drawShape(rc, shape));
-
-    if (previewShapeRef.current) {
-      drawShape(rc, previewShapeRef.current, true);
-    }
-  }, []);
-
-  const drawShape = (rc: RoughCanvas, shape: Shape, isPreview = false) => {
     const options = {
-      stroke: isPreview ? "gray" : "white",
+      stroke: "white",
       strokeWidth: 2,
       roughness: 1,
     };
@@ -213,76 +211,144 @@ const CanvasRoom = () => {
     } else if (shape.type === "line") {
       rc.line(shape.x1, shape.y1, shape.x2, shape.y2, options);
     }
-  };
+  }, []);
+
+  const redrawStaticCanvas = useCallback(() => {
+    const staticCanvas = staticCanvasRef.current;
+    const rc = staticRcRef.current;
+    if (!staticCanvas || !rc) return;
+
+    const context = staticCanvas.getContext("2d");
+    if (!context) return;
+
+    context.clearRect(0, 0, staticCanvas.width, staticCanvas.height);
+
+    shapesRef.current.forEach((shape) => {
+      drawShapeOnStatic(shape);
+    });
+  }, [drawShapeOnStatic]);
+
+  const drawPreviewShape = useCallback(() => {
+    const canvas = canvasRef.current;
+    const rc = rcRef.current;
+    if (!canvas || !rc || !previewShapeRef.current) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    const options = {
+      stroke: "gray",
+      strokeWidth: 2,
+      roughness: 1,
+    };
+
+    const shape = previewShapeRef.current;
+    if (shape.type === "rect") {
+      rc.rectangle(shape.x, shape.y, shape.width, shape.height, options);
+    } else if (shape.type === "circle") {
+      rc.circle(shape.centerX, shape.centerY, shape.radius * 2, options);
+    } else if (shape.type === "line") {
+      rc.line(shape.x1, shape.y1, shape.x2, shape.y2, options);
+    }
+  }, []);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     isDrawingRef.current = true;
     startCoordsRef.current = { x: event.clientX, y: event.clientY };
   };
 
-  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current || !startCoordsRef.current || !rcRef.current)
-      return;
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!isDrawingRef.current || !startCoordsRef.current) return;
 
-    const width = event.clientX - startCoordsRef.current.x;
-    const height = event.clientY - startCoordsRef.current.y;
+      const width = event.clientX - startCoordsRef.current.x;
+      const height = event.clientY - startCoordsRef.current.y;
 
-    if (shapeType === "rect") {
-      previewShapeRef.current = {
-        type: "rect",
-        x: startCoordsRef.current.x,
-        y: startCoordsRef.current.y,
-        width,
-        height,
-      };
-    } else if (shapeType === "circle") {
-      previewShapeRef.current = {
-        type: "circle",
-        centerX: startCoordsRef.current.x,
-        centerY: startCoordsRef.current.y,
-        radius: Math.abs(width),
-      };
-    } else if (shapeType === "line") {
-      previewShapeRef.current = {
-        type: "line",
-        x1: startCoordsRef.current.x,
-        y1: startCoordsRef.current.y,
-        x2: event.clientX,
-        y2: event.clientY,
-      };
-    }
+      if (shapeType === "rect") {
+        previewShapeRef.current = {
+          type: "rect",
+          x: startCoordsRef.current.x,
+          y: startCoordsRef.current.y,
+          width,
+          height,
+        };
+      } else if (shapeType === "circle") {
+        previewShapeRef.current = {
+          type: "circle",
+          centerX: startCoordsRef.current.x,
+          centerY: startCoordsRef.current.y,
+          radius: Math.max(Math.abs(width), Math.abs(height)) / 2,
+        };
+      } else if (shapeType === "line") {
+        previewShapeRef.current = {
+          type: "line",
+          x1: startCoordsRef.current.x,
+          y1: startCoordsRef.current.y,
+          x2: event.clientX,
+          y2: event.clientY,
+        };
+      }
 
-    redrawCanvas();
-  };
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
 
-  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current || !previewShapeRef.current) return;
+      animationFrameIdRef.current = requestAnimationFrame(drawPreviewShape);
+    },
+    [shapeType, drawPreviewShape]
+  );
 
-    isDrawingRef.current = false;
+  const handleMouseUp = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!isDrawingRef.current || !previewShapeRef.current) return;
 
-    const newShapes = [...shapesRef.current, previewShapeRef.current];
-    shapesRef.current = newShapes;
-    setShapes(newShapes);
+      isDrawingRef.current = false;
 
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(
-        JSON.stringify({
-          type: "add_shape",
-          roomId,
-          previewShape: previewShapeRef.current,
-        })
-      );
-    }
+      shapesRef.current.push(previewShapeRef.current);
+      setShapesCount((prev) => prev + 1);
 
-    previewShapeRef.current = null;
-    redrawCanvas();
-  };
+      drawShapeOnStatic(previewShapeRef.current);
+
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(
+          JSON.stringify({
+            type: "add_shape",
+            roomId,
+            previewShape: previewShapeRef.current,
+          })
+        );
+      }
+
+      previewShapeRef.current = null;
+
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+      }
+    },
+    [drawShapeOnStatic, roomId]
+  );
 
   return (
     <div className="h-full w-full relative">
       <canvas
-        ref={canvasRef}
+        ref={staticCanvasRef}
         className="absolute top-0 left-0 bg-black"
+      />
+
+      <canvas
+        ref={canvasRef}
+        className="absolute top-0 left-0 bg-transparent"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -290,13 +356,13 @@ const CanvasRoom = () => {
       <div className="absolute top-4 left-4 z-10">
         <div>
           <Button
-            className={`${shapeType === "circle" ? "bg-white" : ""}`}
+            className={`${shapeType === "circle" ? "bg-white text-black" : ""}`}
             onClick={() => setShapeType("circle")}
           >
             <Circle size={24} />
           </Button>
           <Button
-            className={`${shapeType === "line" ? "bg-white" : ""}`}
+            className={`${shapeType === "line" ? "bg-white text-black" : ""}`}
             onClick={() => setShapeType("line")}
           >
             <PencilLineIcon size={24} />
