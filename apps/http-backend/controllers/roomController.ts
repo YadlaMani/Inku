@@ -1,7 +1,14 @@
 import type { Request, Response } from "express";
-import { createRoomSchema } from "@repo/common/utils";
+
 import { prismaClient } from "@repo/db/client";
 import { nanoid } from "nanoid";
+import { z } from "zod";
+const createRoomSchema = z.object({
+  name: z
+    .string()
+    .min(3, "Room name must be at least 3 characters long")
+    .max(20, "Room name must be at most 20 characters long"),
+});
 export const createRoom = async (req: Request, res: Response) => {
   try {
     const { name } = createRoomSchema.parse(req.body);
