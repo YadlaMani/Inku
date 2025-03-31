@@ -21,6 +21,7 @@ export async function getRoomChats(roomId: string) {
       message: response.data.message,
     });
   } catch (err) {
+    console.log(err);
     return JSON.stringify({
       success: false,
       message: "Invalid room id",

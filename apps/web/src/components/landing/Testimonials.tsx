@@ -20,8 +20,8 @@ const Testimonials = () => {
             <CardContent className="p-6 space-y-4">
               <QuoteIcon className="h-6 w-6 text-black/20 dark:text-white/20" />
               <p className="italic text-muted-foreground">
-                "Inku has completely transformed how I create digital art. The
-                intuitive interface makes my workflow so much faster."
+                {`/"/Inku has completely transformed how I create digital art. The
+                intuitive interface makes my workflow so much faster./"/`}
               </p>
               <div className="flex items-center gap-3 pt-4">
                 <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-xs font-bold">
@@ -42,9 +42,9 @@ const Testimonials = () => {
             <CardContent className="p-6 space-y-4">
               <QuoteIcon className="h-6 w-6 text-black/20 dark:text-white/20" />
               <p className="italic text-muted-foreground">
-                "My team uses Inku daily for our design sprints. The
+                {`/"/My team uses Inku daily for our design sprints. The
                 collaborative features have been a game-changer for our remote
-                workflow."
+                workflow./"/`}
               </p>
               <div className="flex items-center gap-3 pt-4">
                 <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-xs font-bold">
@@ -65,8 +65,8 @@ const Testimonials = () => {
             <CardContent className="p-6 space-y-4">
               <QuoteIcon className="h-6 w-6 text-black/20 dark:text-white/20" />
               <p className="italic text-muted-foreground">
-                "As someone who's not a professional artist, Inku makes it easy
-                for me to create beautiful visuals for my presentations."
+                {`/"/As someone who's not a professional artist, Inku makes it easy
+                for me to create beautiful visuals for my presentations./"/`}
               </p>
               <div className="flex items-center gap-3 pt-4">
                 <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-xs font-bold">

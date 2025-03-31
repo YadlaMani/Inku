@@ -46,6 +46,7 @@ const Dashboard = () => {
         });
       } else toast.error(res.data.message);
     } catch (err) {
+      console.log(err);
       toast.error("Error fetching rooms");
     } finally {
       setLoading(false);

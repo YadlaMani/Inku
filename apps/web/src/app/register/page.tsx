@@ -65,6 +65,7 @@ export default function LoginPage() {
         setError(res.message);
       }
     } catch (error) {
+      console.error(error);
       toast.error("Invalid username or password");
       setError("Invalid username or password");
     } finally {

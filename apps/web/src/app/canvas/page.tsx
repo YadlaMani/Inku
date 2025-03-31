@@ -33,6 +33,7 @@ const Page = () => {
         toast.error(res.data.message);
       }
     } catch (err) {
+      console.log(err);
       toast.error("Error fetching room details");
     }
   }

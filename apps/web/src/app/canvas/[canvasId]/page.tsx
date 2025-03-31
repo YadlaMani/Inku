@@ -1,12 +1,12 @@
 "use client";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import rough from "roughjs";
-import { Button } from "@/components/ui/button";
+
 import { RoughCanvas } from "roughjs/bin/canvas";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import axios from "axios";
-import { Circle, PencilLineIcon, RectangleHorizontalIcon } from "lucide-react";
+
 import ShapeDrawer from "@/components/ShapeDrawer";
 
 type Shape =
@@ -303,6 +303,7 @@ const CanvasRoom = () => {
 
   const handleMouseUp = useCallback(
     (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!event) return;
       if (!isDrawingRef.current || !previewShapeRef.current) return;
 
       isDrawingRef.current = false;

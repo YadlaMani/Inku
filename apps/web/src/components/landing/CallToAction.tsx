@@ -16,7 +16,7 @@ const CallToAction = () => {
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Join our growing community of creatives and bring your ideas to life
-            with Inku's minimalist drawing experience. No complicated tools—just
+            with Inkus minimalist drawing experience. No complicated tools—just
             pure creativity.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
