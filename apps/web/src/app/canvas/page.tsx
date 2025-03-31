@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
@@ -28,6 +28,7 @@ const CanvasRoom = () => {
 
   async function fetchRoomDetails(slug: string) {
     try {
+      console.log(slug);
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await axios.get(
