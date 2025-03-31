@@ -13,6 +13,33 @@ type Shape =
   | { type: "rect"; x: number; y: number; width: number; height: number }
   | { type: "circle"; centerX: number; centerY: number; radius: number }
   | { type: "line"; x1: number; y1: number; x2: number; y2: number };
+type ShapeBackend =
+  | {
+      type: "rect";
+      data: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      };
+    }
+  | {
+      type: "circle";
+      data: {
+        centerX: number;
+        centerY: number;
+        radius: number;
+      };
+    }
+  | {
+      type: "line";
+      data: {
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
+      };
+    };
 
 type currShape = "rect" | "circle" | "line";
 
@@ -46,7 +73,7 @@ const CanvasRoom = () => {
         );
 
         const fetchedShapes = res.data.shapes
-          .map((shape: any) => {
+          .map((shape: ShapeBackend) => {
             if (shape.type === "rect") {
               return {
                 type: "rect",
