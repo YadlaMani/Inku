@@ -19,11 +19,13 @@ const Page = () => {
 
   async function fetchRoomDetails() {
     try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_HTTP_URL}/api/v1/room/${slug}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: token ? `Bearer ${token}` : "",
           },
         }
       );
