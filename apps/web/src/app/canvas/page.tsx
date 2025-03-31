@@ -14,12 +14,10 @@ interface Room {
 
 const CanvasRoom = () => {
   const [room, setRoom] = useState<Room | null>(null);
-  const [slug, setSlug] = useState<string | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const slugParam = searchParams.get("slug");
-    setSlug(slugParam);
 
     if (slugParam) {
       fetchRoomDetails(slugParam);
@@ -28,7 +26,6 @@ const CanvasRoom = () => {
 
   async function fetchRoomDetails(slug: string) {
     try {
-      console.log(slug);
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await axios.get(
