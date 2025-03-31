@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { Circle, PencilLineIcon, RectangleHorizontalIcon } from "lucide-react";
+import ShapeDrawer from "@/components/ShapeDrawer";
 
 type Shape =
   | { type: "rect"; x: number; y: number; width: number; height: number }
@@ -354,26 +355,7 @@ const CanvasRoom = () => {
         onMouseUp={handleMouseUp}
       />
       <div className="absolute top-4 left-4 z-10">
-        <div>
-          <Button
-            className={`${shapeType === "circle" ? "bg-white text-black" : ""}`}
-            onClick={() => setShapeType("circle")}
-          >
-            <Circle size={24} />
-          </Button>
-          <Button
-            className={`${shapeType === "line" ? "bg-white text-black" : ""}`}
-            onClick={() => setShapeType("line")}
-          >
-            <PencilLineIcon size={24} />
-          </Button>
-          <Button
-            className={`${shapeType === "rect" ? "bg-white text-black" : ""}`}
-            onClick={() => setShapeType("rect")}
-          >
-            <RectangleHorizontalIcon size={24} />
-          </Button>
-        </div>
+        <ShapeDrawer shapeType={shapeType} setShapeType={setShapeType} />
       </div>
     </div>
   );
