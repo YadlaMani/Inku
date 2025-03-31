@@ -20,6 +20,7 @@
     "apps/http-backend": {
       "name": "http-backend",
       "dependencies": {
+        "@types/cors": "^2.8.17",
         "@types/jsonwebtoken": "^9.0.9",
         "cors": "^2.8.5",
         "jsonwebtoken": "^9.0.2",
