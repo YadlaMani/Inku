@@ -37,8 +37,14 @@ const Dashboard = () => {
         }
       );
       console.log(res.data);
-      if (res.data.success) setUserRooms(res.data.rooms || []);
-      else toast.error(res.data.message);
+      if (res.data.success) {
+        res.data.data.forEach((room: Room) => {
+          setUserRooms((prevRooms) => [
+            ...prevRooms,
+            { id: room.id, slug: room.slug, createdAt: room.createdAt },
+          ]);
+        });
+      } else toast.error(res.data.message);
     } catch (err) {
       toast.error("Error fetching rooms");
     } finally {
@@ -92,6 +98,9 @@ const Dashboard = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Created At: {new Date(room.createdAt).toLocaleString()}
               </p>
+              <Button>
+                <Link href={`/canvas?slug=${room.slug}`}>Join Room</Link>
+              </Button>
             </li>
           ))}
         </ul>

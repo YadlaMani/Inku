@@ -6,7 +6,7 @@ export const createRoom = async (req: Request, res: Response) => {
   try {
     const { name } = createRoomSchema.parse(req.body);
     if (!req.userId) {
-      res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({ message: "Unauthorized", success: false });
       return;
     }
     const room = await prismaClient.room.create({
@@ -18,11 +18,13 @@ export const createRoom = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Room created successfully",
       data: room,
+      success: true,
     });
   } catch (err) {
     res.status(400).json({
       message: "Something went wrong",
       error: err,
+      success: false,
     });
   }
 };
@@ -93,6 +95,9 @@ export const getRooms = async (req: Request, res: Response) => {
       where: {
         adminId: req.userId,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
     res.json({
       message: "Rooms fetched successfully",
@@ -133,5 +138,30 @@ export const getRoomShapes = async (req: Request, res: Response) => {
       error: err,
       success: false,
     });
+  }
+};
+export const getRoomDetails = async (req: Request, res: Response) => {
+  try {
+    if (!req.userId) {
+      res.json({ message: "Unauthorized", success: false });
+      return;
+    }
+    const { roomSlug } = req.params;
+    const room = await prismaClient.room.findUnique({
+      where: {
+        slug: roomSlug,
+      },
+    });
+    if (!room) {
+      res.json({ message: "Room not found", success: false });
+      return;
+    }
+    res.json({
+      message: "Room details fetched successfully",
+      room,
+      success: true,
+    });
+  } catch (err) {
+    res.json({ message: "Something went wrong", error: err, success: false });
   }
 };
