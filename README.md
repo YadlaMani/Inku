@@ -2,6 +2,13 @@
 
 Inku is a multi-application project designed to provide a robust platform for web, HTTP backend, and WebSocket backend services. The project is built using modern technologies like Next.js, TypeScript, and Vercel for deployment.
 
+## Demo
+
+
+https://github.com/user-attachments/assets/3339c334-fd71-4094-9705-f93f54ab1d5e
+
+
+
 ## Project Structure
 
 The project is organized into the following directories:
